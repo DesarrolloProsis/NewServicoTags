@@ -10,3 +10,14 @@ C:\Users\Desarrollo3\source\repos\NewServiceTag\NewServiceTag\bin\Debug\Oracle.M
 C:\Users\Desarrollo3\source\repos\NewServiceTag\NewServiceTag\obj\Debug\NewServiceTag.csproj.CopyComplete
 C:\Users\Desarrollo3\source\repos\NewServiceTag\NewServiceTag\obj\Debug\NewServiceTag.exe
 C:\Users\Desarrollo3\source\repos\NewServiceTag\NewServiceTag\obj\Debug\NewServiceTag.pdb
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\bin\Debug\NewServiceTag.exe.config
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\bin\Debug\NewServiceTag.exe
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\bin\Debug\NewServiceTag.pdb
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\bin\Debug\Oracle.ManagedDataAccess.dll
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.ProjectInstaller.resources
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.NewServiceTag.resources
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csproj.GenerateResource.cache
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csproj.CoreCompileInputs.cache
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csproj.CopyComplete
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.exe
+C:\Users\Desarrollo3\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.pdb

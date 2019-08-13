@@ -33,9 +33,6 @@ namespace NewServiceTag
 
         }
 
-
-
-
         protected override void OnStart(string[] args)
         {
             timProcess = new System.Timers.Timer
@@ -57,7 +54,7 @@ namespace NewServiceTag
         }
         private void StopService()
         {
-            ServiceController sc = new ServiceController("ServiceTags");
+            ServiceController sc = new ServiceController("NewServiceTag");
 
             try
             {
