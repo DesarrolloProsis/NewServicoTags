@@ -79,7 +79,14 @@ namespace NewServiceTag
             }
             catch (Exception ex)
             {
-              
+                using (StreamWriter file = new StreamWriter(path + archivo, true))
+                {
+                    Consecutivotxt++;
+                    file.WriteLine("erro al detener el servicio"); //se agrega información al documento
+                    file.Dispose();
+                    file.Close();
+                }
+
             }
             StopService();
         }
@@ -214,13 +221,7 @@ namespace NewServiceTag
                     if (!File.Exists(path + archivo))
                     {
                         File.CreateText(path + archivo);
-                        using (StreamWriter file = new StreamWriter(path + archivo, true))
-                        {
-                            Consecutivotxt++;
-                            file.WriteLine();
-                            file.Dispose();
-                            file.Close();
-                        }
+                    
                     }
                  
                 }
