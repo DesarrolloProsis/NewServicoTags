@@ -20,7 +20,7 @@ namespace NewServiceTag
     {
         private System.Timers.Timer timProcess = null;
         private int i = 0;
-        private string path = @"C:\ExecutedActionWS\";
+        private string path = @"C:\NewServiceFiles\";
         private string archivo = "WindowsServiceTagsPruebasNuevaVersion.txt";
         private bool SinRegistro = false;
         private static int Consecutivotxt = 0;
@@ -29,24 +29,36 @@ namespace NewServiceTag
         private DateTime BanderaTxt;
         public NewServiceTag()
         {
-            InitializeComponent();
-
+          
+            
+                InitializeComponent();
+          
+          
         }
 
         protected override void OnStart(string[] args)
         {
-            timProcess = new System.Timers.Timer
-            {
-                Interval = 90000
-            };
-            timProcess.Elapsed += new System.Timers.ElapsedEventHandler(TimProcess_Elapsed);
-            timProcess.Enabled = true;
-            timProcess.Start();
+            
+
+
+                timProcess = new System.Timers.Timer
+                {
+                    Interval = 90000
+                };
+                timProcess.Elapsed += new System.Timers.ElapsedEventHandler(TimProcess_Elapsed);
+                timProcess.Enabled = true;
+                timProcess.Start();
+          
+          
         }
         private void TimProcess_Elapsed(object sender, ElapsedEventArgs e)
         {
-            timProcess.Enabled = false;
-            ExecuteProcess();
+            
+
+                timProcess.Enabled = false;
+                ExecuteProcess();
+            
+         
         }
         protected override void OnStop()
         {
@@ -67,8 +79,7 @@ namespace NewServiceTag
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error al detener el servicio:");
-                Console.WriteLine(ex.Message);
+              
             }
             StopService();
         }
@@ -203,7 +214,15 @@ namespace NewServiceTag
                     if (!File.Exists(path + archivo))
                     {
                         File.CreateText(path + archivo);
+                        using (StreamWriter file = new StreamWriter(path + archivo, true))
+                        {
+                            Consecutivotxt++;
+                            file.WriteLine();
+                            file.Dispose();
+                            file.Close();
+                        }
                     }
+                 
                 }
 
 
@@ -222,6 +241,7 @@ namespace NewServiceTag
             }
 
         }
+
 
         public List<Bandera> Buscar_Bandera()
         {
@@ -1061,5 +1081,6 @@ namespace NewServiceTag
 
             return Nueva_Clase;
         }
+
     }
 }
