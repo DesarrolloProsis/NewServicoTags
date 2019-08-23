@@ -122,7 +122,7 @@ namespace NewServiceTag
 
 
             //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
-            string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+            string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
 
 
             SqlConnection ConexionSQL = new SqlConnection(SQL);
@@ -250,7 +250,7 @@ namespace NewServiceTag
 
 
             //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
-            string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+            string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
 
             SqlConnection ConexionSQL = new SqlConnection(SQL);
             List<Bandera> Lista = new List<Bandera>();
@@ -457,7 +457,7 @@ namespace NewServiceTag
                 string Query = string.Empty;
 
                 //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
-                string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+                string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
 
                 SqlConnection ConexionSQL = new SqlConnection(SQL);
 
@@ -571,7 +571,7 @@ namespace NewServiceTag
 
 
             //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
-            string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+            string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
 
             SqlConnection ConexionSQL = new SqlConnection(SQL);
             string Query = string.Empty;
@@ -842,7 +842,7 @@ namespace NewServiceTag
                 }
 
                 //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
-                string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+                string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
                 SqlConnection ConexionSQL = new SqlConnection(SQL);
 
                 using (SqlCommand SqlCommand = new SqlCommand("", ConexionSQL))
