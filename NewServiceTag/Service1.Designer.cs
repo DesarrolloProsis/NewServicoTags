@@ -34,6 +34,7 @@
             // eventLog1
             // 
             this.eventLog1.Log = "Application";
+            this.eventLog1.EntryWritten += new System.Diagnostics.EntryWrittenEventHandler(this.eventLog1_EntryWritten);
             // 
             // NewServiceTag
             // 

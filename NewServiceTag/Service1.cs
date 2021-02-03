@@ -24,50 +24,37 @@ namespace NewServiceTag
         private string archivo = "WindowsServiceTagsPruebasNuevaVersion.txt";
         private bool SinRegistro = false;
         private static int Consecutivotxt = 0;
-        private int CrucesIniciales = 0;
-        private int CrucesRegistrados = 0;
-        private DateTime BanderaTxt;
+
         public NewServiceTag()
         {
-          
-            
-                InitializeComponent();
-          
-          
+            InitializeComponent();
         }
 
         protected override void OnStart(string[] args)
         {
-            
-
-
-                timProcess = new System.Timers.Timer
-                {
-                    Interval = 90000
-                };
-                timProcess.Elapsed += new System.Timers.ElapsedEventHandler(TimProcess_Elapsed);
-                timProcess.Enabled = true;
-                timProcess.Start();
-          
-          
+            timProcess = new System.Timers.Timer
+            {
+                Interval = 90000
+            };
+            timProcess.Elapsed += new System.Timers.ElapsedEventHandler(TimProcess_Elapsed);
+            timProcess.Enabled = true;
+            timProcess.Start();
         }
+
         private void TimProcess_Elapsed(object sender, ElapsedEventArgs e)
         {
-            
-
-                timProcess.Enabled = false;
-                ExecuteProcess();
-            
-         
+            timProcess.Enabled = false;
+            ExecuteProcess();
         }
+
         protected override void OnStop()
         {
 
         }
+
         private void StopService()
         {
             ServiceController sc = new ServiceController("NewServiceTag");
-
             try
             {
                 if (sc != null && sc.Status == ServiceControllerStatus.Running)
@@ -93,48 +80,35 @@ namespace NewServiceTag
 
         private void ExecuteProcess()
         {
-
             MetodoInicial();
             timProcess.Enabled = true;
         }
 
-        public List<TagCuenta> MetodoInicial()
+        public void MetodoInicial()
         {
-            CrucesIniciales = 0;
-            CrucesRegistrados = 0;
+            //Crea el Log si no Existe
             Buscar_Texto();
             var Bandera = Buscar_Bandera();
-            string Query = string.Empty;
-
+            string Query;
             if (Bandera == null)
 
                 Query = "SELECT CONTENU_ISO, VOIE, ID_GARE, TAB_ID_CLASSE, TO_CHAR(DATE_TRANSACTION, 'dd/mm/yyyy hh24:mi:ss')DATE_TRANSACTION, PRIX_TOTAL, EVENT_NUMBER, TAG_TRX_NB, INDICE_SUITE FROM  TRANSACTION Where  ID_PAIEMENT = '15' AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) >= '2019/04/21 00:00:00'  AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) < '2019/04/26 00:00:00' AND SUBSTR(TO_CHAR(CONTENU_ISO),0,3) = '501' and TAB_ID_CLASSE >=1 order by DATE_TRANSACTION ASC";
-            //Query = "SELECT CONTENU_ISO, VOIE, ID_GARE, TAB_ID_CLASSE, TO_CHAR(DATE_TRANSACTION, 'dd/mm/yyyy hh24:mi:ss')DATE_TRANSACTION, PRIX_TOTAL, EVENT_NUMBER FROM  TRANSACTION Where  ID_PAIEMENT = '15' AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) > '2019/04/03 09:00:00'  AND ACD_CLASS >= 1  order by DATE_TRANSACTION ASC";
-
             else
-
+            {
                 Query = @"SELECT CONTENU_ISO, VOIE, ID_GARE, TAB_ID_CLASSE, TO_CHAR(DATE_TRANSACTION, 'dd/mm/yyyy hh24:mi:ss')DATE_TRANSACTION, PRIX_TOTAL, EVENT_NUMBER, TAG_TRX_NB, INDICE_SUITE
                         FROM  TRANSACTION
                         Where  ID_PAIEMENT = '15'
-                        AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) > '" + Convert.ToString(Bandera[0].Bandera_Nueva.AddMinutes(-18).ToString("yyyy/MM/dd HH:mm:ss")) + "' AND SUBSTR(TO_CHAR(CONTENU_ISO),0,3) = '501' AND TAB_ID_CLASSE >= 1 order by DATE_TRANSACTION ASC";
+                        AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) > '" + Convert.ToString(Bandera.Bandera_Nueva.AddMinutes(-18).ToString("yyyy/MM/dd HH:mm:ss")) + "' AND SUBSTR(TO_CHAR(CONTENU_ISO),0,3) = '501' AND TAB_ID_CLASSE >= 1 order by DATE_TRANSACTION ASC";
+            }
 
             var Cruces = Buscar_Cruces(Query);
-
-
-            //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
             string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
-
-
             SqlConnection ConexionSQL = new SqlConnection(SQL);
-            List<Historico> CrucesListos = new List<Historico>();
-
             try
             {
-
                 using (SqlCommand cmd = new SqlCommand("", ConexionSQL))
                 {
                     ConexionSQL.Open();
-
                     foreach (var item in Cruces)
                     {
                         Query = @"SELECT COUNT(*) FROM dbo.Historico 
@@ -144,16 +118,9 @@ namespace NewServiceTag
                         cmd.CommandText = Query;
                         var Valida = Convert.ToInt32(cmd.ExecuteScalar());
 
-                        using (StreamWriter file = new StreamWriter(path + archivo, true))
-                        {
-                            file.WriteLine(DateTime.Now.ToString() + " " + item.NumTag + " " + item.Evento + " " + Valida + "/n" + Query); //se agrega información al documento
-                            file.Dispose();
-                            file.Close();
-                        }
-
                         if (Valida == 0)
                         {
-                            CrucesListos.Add(new Historico
+                            Actualizar(new Historico
                             {
                                 NumTag = item.NumTag,
                                 Delegacion = item.Delegacion,
@@ -169,6 +136,13 @@ namespace NewServiceTag
                             });
                         }
 
+                        using (StreamWriter file = new StreamWriter(path + archivo, true))
+                        {
+                            file.WriteLine("Proceso completo a las " + DateTime.Now.ToString());
+                            file.Dispose();
+                            file.Close();
+
+                        }
                     }
                 }
             }
@@ -182,34 +156,12 @@ namespace NewServiceTag
                     file.Close();
                 }
                 StopService();
-
             }
             finally
             {
                 ConexionSQL.Close();
             }
-
-            if (CrucesListos != null && CrucesListos.Count > 0)
-            {
-                if (Bandera == null)
-                {
-                    BanderaTxt = DateTime.Now;
-                    CrucesIniciales = CrucesListos.Count();
-                }
-                else
-                {
-                    BanderaTxt = Bandera[0].Bandera_Nueva;
-                    CrucesIniciales = CrucesListos.Count();
-                }
-
-
-                Actualizar(CrucesListos);
-            }
-
-            return null;
         }
-
-
 
         public void Buscar_Texto()
         {
@@ -221,12 +173,8 @@ namespace NewServiceTag
                     if (!File.Exists(path + archivo))
                     {
                         File.CreateText(path + archivo);
-                    
                     }
-                 
                 }
-
-
             }
             catch (Exception Ex)
             {
@@ -238,49 +186,24 @@ namespace NewServiceTag
                     file.Close();
                 }
                 StopService();
-
             }
-
         }
 
-
-        public List<Bandera> Buscar_Bandera()
+        public Bandera Buscar_Bandera()
         {
-
-
-
-            //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
             string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
-
             SqlConnection ConexionSQL = new SqlConnection(SQL);
-            List<Bandera> Lista = new List<Bandera>();
-            Bandera NewObject = new Bandera();
-
-            using (SqlCommand SqlCommand = new SqlCommand("SELECT convert(datetime,Fecha)Fecha, Evento FROM Historico WHERE Fecha = (SELECT MAX(Fecha) FROM Historico) group by Fecha, Evento", ConexionSQL))
+            using (SqlCommand SqlCommand = new SqlCommand("select top(1) convert(varchar,Fecha,27) as Fecha, Evento from Historico order by Fecha desc", ConexionSQL))
             {
                 try
                 {
                     ConexionSQL.Open();
-                    SqlCommand.ExecuteNonQuery();
-                    SqlDataAdapter sqlData = new SqlDataAdapter(SqlCommand);
-                    DataTable table = new DataTable();
-                    sqlData.Fill(table);
-
-                    if (table.Rows.Count > 0)
+                    using (var reader = SqlCommand.ExecuteReader())
                     {
-
-                        foreach (DataRow item in table.Rows)
+                        if (reader.Read())
                         {
-                            Lista.Add(new Bandera
-                            {
-                                Bandera_Nueva = Convert.ToDateTime(item["Fecha"].ToString()),
-                                Evento = item["Evento"].ToString()
-                            });
+                            return new Bandera(Convert.ToDateTime(reader["Fecha"]), reader["Evento"].ToString());
                         }
-                    }
-                    else
-                    {
-                        return null;
                     }
 
                 }
@@ -293,20 +216,16 @@ namespace NewServiceTag
                         file.Close();
                     }
                     StopService();
-
                 }
                 finally
                 {
                     ConexionSQL.Close();
                 }
 
-
-                return Lista;
-
+                return null;
             }
-
-
         }
+
         public List<Historico> Buscar_Cruces(string Query)
         {
             string Error = string.Empty;
@@ -316,7 +235,6 @@ namespace NewServiceTag
                 string ORACLE = "User Id = GEADBA; Password = fgeuorjvne; Data Source = (DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST= 10.1.10.111 )(PORT = 1521)))(CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = GEAPROD)))";
                 //string ORACLE = "User Id = GEADBA; Password = fgeuorjvne; Data Source = (DESCRIPTION = (ADDRESS_LIST = (ADDRESS = (PROTOCOL = TCP)(HOST= prosis.onthewifi.com )(PORT = 1521)))(CONNECT_DATA = (SERVER = DEDICATED)(SERVICE_NAME = GEAPROD)))";
                 OracleConnection ConexionOracle = new OracleConnection(ORACLE);
-
                 using (OracleCommand command = new OracleCommand(Query, ConexionOracle))
 
                 {
@@ -327,18 +245,11 @@ namespace NewServiceTag
                         DataTable dt = new DataTable("RECLASIFICADOS");
                         OracleDataAdapter myAdapter = new OracleDataAdapter(command);
                         myAdapter.Fill(dt);
-
-
-
-
-
                         /********************************************************/
                         foreach (DataRow indi in dt.Rows)
                         {
-
                             if (indi["CONTENU_ISO"].ToString().Replace(" ", "").Substring(0, 4) == "IMDM")
                             {
-
                                 indi["CONTENU_ISO"] = indi["CONTENU_ISO"].ToString().Replace(" ", "").Substring(0, 12);
                             }
                             else if (indi["CONTENU_ISO"].ToString().Replace(" ", "").Substring(0, 4) == "OHLM")
@@ -350,7 +261,6 @@ namespace NewServiceTag
                                 indi["CONTENU_ISO"] = indi["CONTENU_ISO"].ToString().Replace(" ", "").Substring(0, 3) + indi["CONTENU_ISO"].ToString().Replace(" ", "").Substring(5, 8);
                                 var prueba = indi["CONTENU_ISO"].ToString().Substring(6, 5);
                             }
-
                         }
                         DataTable dtDelegacion = new DataTable();
                         DataTable dtPlaza = new DataTable();
@@ -370,14 +280,11 @@ namespace NewServiceTag
                         {
                             Plaza = indi["NOM_SITE"].ToString();
                         }
-
-
                         // METODO QUE AGREGA A LISTA DE CRUCES 
                         List<Historico> ListaHistorico = new List<Historico>();
                         foreach (DataRow item in dt.Rows)
                         {
                             Historico newRegistro = new Historico();
-
                             newRegistro.NumTag = item["CONTENU_ISO"].ToString();
                             newRegistro.Carril = item["VOIE"].ToString();
                             newRegistro.Delegacion = Delegacion;
@@ -394,20 +301,13 @@ namespace NewServiceTag
                                 newRegistro.Operadora = "Otros";
                             else
                                 newRegistro.Operadora = "SIVA";
-
-
                             // AGREGAMOS TAG_TRX_NB
                             newRegistro.TAG_TRX_NB = long.Parse(item["TAG_TRX_NB"].ToString());
-
                             ListaHistorico.Add(newRegistro);
                             Error = string.Empty;
                             SinError = string.Empty;
                         }
-
-
-
                         return ListaHistorico;
-
                     }
                     catch (Exception Ex)
                     {
@@ -418,7 +318,6 @@ namespace NewServiceTag
                             file.Close();
                         }
                         StopService();
-
                     }
                     finally
                     {
@@ -438,30 +337,18 @@ namespace NewServiceTag
                 }
                 StopService();
             }
-            finally
-            {
 
-            }
             return null;
         }
 
-
-        public List<TagCuenta> Busca_TagCuenta(string Cruce, double saldo)
+        public TagCuenta Busca_TagCuenta(string Cruce, double saldo)
         {
-
-            List<TagCuenta> ListaTagCuenta = new List<TagCuenta>();
-
             try
             {
-
                 string Query = string.Empty;
-
-                //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
                 string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
-
                 SqlConnection ConexionSQL = new SqlConnection(SQL);
-
-                Query = "Select CuentaId, NumTag, NumCuenta, StatusTag, StatusCuenta, TypeCuenta, SaldoCuenta, SaldoTag " +
+                Query = "Select top(1) CuentaId, NumTag, NumCuenta, StatusTag, StatusCuenta, TypeCuenta, SaldoCuenta, SaldoTag " +
                         "From Tags t Inner Join CuentasTelepeajes c on t.CuentaId = c.Id Where t.NumTag = '" + Cruce + "'";
 
                 using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
@@ -469,68 +356,46 @@ namespace NewServiceTag
                     try
                     {
                         ConexionSQL.Open();
-                        cmd.ExecuteNonQuery();
-                        DataTable dt = new DataTable();
-                        SqlDataAdapter myAdapter = new SqlDataAdapter(cmd);
-                        myAdapter.Fill(dt);
-
-
-                        if (dt.Rows.Count != 0)
+                        using (var reader = cmd.ExecuteReader())
                         {
-                            var pruebas = dt.Rows[0]["TypeCuenta"].ToString();
-                            var CasandoBug = dt.Rows[0]["NumTag"].ToString();
-
-                            //if (CasandoBug == "50100000877")
-                            //{
-                            //    string lisds = "AQUI";
-                            //}
-
-                            //else if (CasandoBug == "50100000663")
-                            //{
-                            //    string istas = "OAQUI";
-                            //}
-
-                            if (dt.Rows[0]["TypeCuenta"].ToString() == "Individual")
+                            if (reader.Read())
                             {
-
-                                ListaTagCuenta.Add(new TagCuenta
+                                if (reader["TypeCuenta"].ToString() == "Individual")
                                 {
-                                    CuentaId = Convert.ToInt64(dt.Rows[0]["CuentaId"].ToString()),
-                                    NumTag = Convert.ToString(dt.Rows[0]["NumTag"]),
-                                    NumCuenta = Convert.ToString(dt.Rows[0]["NumCuenta"]),
-                                    StatusTag = Convert.ToBoolean(dt.Rows[0]["StatusTag"]),
-                                    StatusCuenta = Convert.ToBoolean(dt.Rows[0]["StatusCuenta"]),
-                                    TypeCuenta = Convert.ToString(dt.Rows[0]["TypeCuenta"]),
-                                    SaldoCuenta = 0,
-                                    SaldoTag = double.Parse((Convert.ToDouble(Convert.ToString(dt.Rows[0]["SaldoTag"])) / 100.00).ToString("F2")),
-                                    DescuentoCruce = saldo
-                                    //DescuentoCruce = Convert.ToDouble(saldo)
-                                    //DescuentoCruce = Convert.ToDouble("15.25")
+                                    return new TagCuenta(
 
-                                });
+                                        Convert.ToInt64(reader["CuentaId"].ToString()),
+                                        Convert.ToString(reader["NumTag"]),
+                                        Convert.ToString(reader["NumCuenta"]),
+                                        Convert.ToBoolean(reader["StatusTag"]),
+                                        Convert.ToBoolean(reader["StatusCuenta"]),
+                                        Convert.ToString(reader["TypeCuenta"]),
+                                        0,
+                                        double.Parse((Convert.ToDouble(Convert.ToString(reader["SaldoTag"])) / 100.00).ToString("F2")),
+                                        saldo
+                                    );
+                                }
+                                else
+                                {
+                                    return new TagCuenta(
+
+                                        Convert.ToInt64(reader["CuentaId"].ToString()),
+                                        Convert.ToString(reader["NumTag"]),
+                                        Convert.ToString(reader["NumCuenta"]),
+                                        Convert.ToBoolean(reader["StatusTag"]),
+                                        Convert.ToBoolean(reader["StatusCuenta"]),
+                                        Convert.ToString(reader["TypeCuenta"]),
+                                        double.Parse((Convert.ToDouble(Convert.ToString(reader["SaldoCuenta"])) / 100.00).ToString("F2")),
+                                        double.Parse((Convert.ToDouble(Convert.ToString(reader["SaldoTag"])) / 100.00).ToString("F2")),
+                                        saldo
+                                    );
+                                }
                             }
                             else
                             {
-                                ListaTagCuenta.Add(new TagCuenta
-                                {
-                                    CuentaId = Convert.ToInt64(dt.Rows[0]["CuentaId"].ToString()),
-                                    NumTag = Convert.ToString(dt.Rows[0]["NumTag"]),
-                                    NumCuenta = Convert.ToString(dt.Rows[0]["NumCuenta"]),
-                                    StatusTag = Convert.ToBoolean(dt.Rows[0]["StatusTag"]),
-                                    StatusCuenta = Convert.ToBoolean(dt.Rows[0]["StatusCuenta"]),
-                                    TypeCuenta = Convert.ToString(dt.Rows[0]["TypeCuenta"]),
-                                    SaldoCuenta = double.Parse((Convert.ToDouble(Convert.ToString(dt.Rows[0]["SaldoCuenta"])) / 100.00).ToString("F2")),
-                                    SaldoTag = double.Parse((Convert.ToDouble(Convert.ToString(dt.Rows[0]["SaldoTag"])) / 100.00).ToString("F2")),
-                                    DescuentoCruce = saldo
-                                    //DescuentoCruce = Convert.ToDouble(saldo)
-                                    //DescuentoCruce = Convert.ToDouble("15.25")
-
-                                });
+                                return null;
                             }
-
                         }
-
-
                     }
                     catch (Exception Ex)
                     {
@@ -549,7 +414,7 @@ namespace NewServiceTag
                     }
                 }
 
-                return ListaTagCuenta;
+                return null;
             }
             catch (Exception Ex)
             {
@@ -562,296 +427,243 @@ namespace NewServiceTag
                 StopService();
 
             }
-
-            return ListaTagCuenta;
+            return null;
         }
 
-        public void Actualizar(List<Historico> Historicos)
+        public void Actualizar(Historico newRow)
         {
-
-
-            //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
             string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
-
             SqlConnection ConexionSQL = new SqlConnection(SQL);
             string Query = string.Empty;
             string SaldoAnterior = string.Empty;
             string SaldoActualizado = string.Empty;
             string NumeroCuenta = string.Empty;
             string TipoCuenta = string.Empty;
-            foreach (var item in Historicos)
+
+            var TagCuenta2 = Busca_TagCuenta(newRow.NumTag, newRow.Saldo);
+            if (TagCuenta2 == null)
             {
-
-                var TagCuenta2 = Busca_TagCuenta(item.NumTag, item.Saldo);
-
-                if (TagCuenta2.Count == 0)
+                SinRegistro = true;
+                using (StreamWriter file = new StreamWriter(path + archivo, true))
                 {
-                    SinRegistro = true;
-                    using (StreamWriter file = new StreamWriter(path + archivo, true))
-                    {
-                        file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + "Sin Coincidencia de cruce con SQL"); //se agrega información al documento
-                        file.Dispose();
-                        file.Close();
-                    }
-                    StopService();
+                    file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + "Sin Coincidencia de cruce con SQL"); //se agrega información al documento
+                    file.Dispose();
+                    file.Close();
                 }
-                else
-                {
-                    SinRegistro = false;
-                }
-
-
-                foreach (var item2 in TagCuenta2)
-                {
-                    switch (Convert.ToString(item2.TypeCuenta))
-                    {
-                        case "Colectiva":
-
-                            SaldoAnterior = Convert.ToString(item2.SaldoCuenta);
-                            var NuevoSaldoColectivos = item2.SaldoCuenta - item2.DescuentoCruce;
-                            SaldoActualizado = Convert.ToString(NuevoSaldoColectivos);
-                            //CambiosNewColumn
-                            NumeroCuenta = item2.NumCuenta;
-                            TipoCuenta = item2.TypeCuenta;
-
-                            if (NuevoSaldoColectivos < 15.25)
-                            {
-
-
-                                using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
-                                {
-                                    try
-                                    {
-                                        ConexionSQL.Open();
-                                        cmd.CommandText = "Update CuentasTelepeajes Set SaldoCuenta = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where NumCuenta = '" + item2.NumCuenta + "'";
-                                        cmd.ExecuteNonQuery();
-
-                                        cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where CuentaId = '" + item2.CuentaId + "'";
-                                        cmd.ExecuteNonQuery();
-
-
-                                        if (ValidarExcentos(item.NumTag))
-                                        {
-
-                                            cmd.CommandText = "Update CuentasTelepeajes Set StatusCuenta = '0' where NumCuenta = '" + item2.NumCuenta + "'";
-                                            cmd.ExecuteNonQuery();
-
-
-                                            cmd.CommandText = "Update Tags Set StatusTag = '0' where CuentaId = '" + item2.CuentaId + "'";
-                                            cmd.ExecuteNonQuery();
-                                        }
-
-                                    }
-                                    catch (Exception Ex)
-                                    {
-                                        using (StreamWriter file = new StreamWriter(path + archivo, true))
-                                        {
-                                            file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualizacion de colectivo <"); //se agrega información al documento
-                                            file.Dispose();
-                                            file.Close();
-                                        }
-                                        StopService();
-
-                                    }
-                                    finally
-                                    {
-                                        ConexionSQL.Close();
-
-                                    }
-                                }
-                            }
-                            else
-                            {
-
-                                using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
-                                {
-                                    try
-                                    {
-                                        ConexionSQL.Open();
-
-                                        cmd.CommandText = "Update CuentasTelepeajes Set SaldoCuenta = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where NumCuenta = '" + item2.NumCuenta + "'";
-                                        cmd.ExecuteNonQuery();
-
-                                        cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where CuentaId = '" + item2.CuentaId + "'";
-                                        cmd.ExecuteNonQuery();
-
-
-
-                                    }
-                                    catch (Exception Ex)
-                                    {
-                                        using (StreamWriter file = new StreamWriter(path + archivo, true))
-                                        {
-                                            file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualizacion de Colectivos"); //se agrega información al documento
-                                            file.Dispose();
-                                            file.Close();
-                                        }
-                                        StopService();
-                                    }
-                                    finally
-                                    {
-                                        ConexionSQL.Close();
-
-                                    }
-                                }
-                            }
-
-                            break;
-
-
-                        case "Individual":
-
-                            SaldoAnterior = Convert.ToString(item2.SaldoTag);
-                            var NuevoSaldoIndividuales = item2.SaldoTag - item2.DescuentoCruce;
-                            SaldoActualizado = Convert.ToString(NuevoSaldoIndividuales);
-                            //CambiosNewColumn
-                            NumeroCuenta = item2.NumCuenta;
-                            TipoCuenta = item2.TypeCuenta;
-
-
-
-                            if (NuevoSaldoIndividuales < 15.25)
-                            {
-
-
-                                using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
-                                {
-                                    try
-                                    {
-                                        ConexionSQL.Open();
-
-                                        cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoIndividuales * 100), 2)) + "' Where CuentaId = '" + item2.CuentaId + "'";
-                                        cmd.ExecuteNonQuery();
-
-                                        if (ValidarExcentos(item.NumTag))
-                                        {
-                                            cmd.CommandText = "Update Tags Set StatusTag = '0' where NumTag = '" + item2.NumTag + "'";
-                                            cmd.ExecuteNonQuery();
-                                        }
-
-                                    }
-                                    catch (Exception Ex)
-                                    {
-                                        using (StreamWriter file = new StreamWriter(path + archivo, true))
-                                        {
-                                            file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualiazcion Individual <"); //se agrega información al documento
-                                            file.Dispose();
-                                            file.Close();
-                                        }
-                                        StopService();
-                                    }
-                                    finally
-                                    {
-                                        ConexionSQL.Close();
-
-                                    }
-                                }
-                            }
-                            else
-                            {
-
-                                using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
-                                {
-                                    try
-                                    {
-                                        ConexionSQL.Open();
-
-                                        cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoIndividuales * 100), 2)) + "' Where CuentaId = '" + item2.CuentaId + "'";
-                                        cmd.ExecuteNonQuery();
-
-
-                                    }
-                                    catch (Exception Ex)
-                                    {
-                                        using (StreamWriter file = new StreamWriter(path + archivo, true))
-                                        {
-                                            file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualizacion Individual"); //se agrega información al documento
-                                            file.Dispose();
-                                            file.Close();
-                                        }
-                                        StopService();
-
-                                    }
-                                    finally
-                                    {
-                                        ConexionSQL.Close();
-
-                                    }
-                                }
-                            }
-
-                            break;
-
-                        default:
-                            break;
-
-                    }
-
-
-                }
-                if (SinRegistro == false)
-                    ActualizarHistorico(Historicos, item.NumTag, item.Evento, SaldoAnterior, SaldoActualizado, NumeroCuenta, TipoCuenta);
+                StopService();
             }
 
-            using (StreamWriter file = new StreamWriter(path + archivo, true))
+            if (!SinRegistro)
             {
-                Consecutivotxt++;
-                file.WriteLine("Se inicio el proceso ServicioWinTags: " + Consecutivotxt.ToString() + " a las " + BanderaTxt.ToString("dd/MM/yyy  hh:mm:ss.fff") + " Al iniciar Registro " + CrucesIniciales + " Cruces " + "Termino a las: " + DateTime.Now.ToString("dd/MM/yyy  hh:mm:ss.fff") + " Ingreso " + CrucesRegistrados + " Cruces "); //se agrega información al documento
-                file.Dispose();
-                file.Close();
+                switch (Convert.ToString(TagCuenta2.TypeCuenta))
+                {
+                    case "Colectiva":
+                        SaldoAnterior = Convert.ToString(TagCuenta2.SaldoCuenta);
+                        var NuevoSaldoColectivos = TagCuenta2.SaldoCuenta - TagCuenta2.DescuentoCruce;
+                        SaldoActualizado = Convert.ToString(NuevoSaldoColectivos);
+                        //CambiosNewColumn
+                        NumeroCuenta = TagCuenta2.NumCuenta;
+                        TipoCuenta = TagCuenta2.TypeCuenta;
+
+                        if (NuevoSaldoColectivos < 15.25)
+                        {
+                            using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
+                            {
+                                try
+                                {
+                                    ConexionSQL.Open();
+                                    cmd.CommandText = "Update CuentasTelepeajes Set SaldoCuenta = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where NumCuenta = '" + TagCuenta2.NumCuenta + "'";
+                                    cmd.ExecuteNonQuery();
+
+                                    cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where CuentaId = '" + TagCuenta2.CuentaId + "'";
+                                    cmd.ExecuteNonQuery();
+
+
+                                    if (ValidarExcentos(newRow.NumTag))
+                                    {
+
+                                        cmd.CommandText = "Update CuentasTelepeajes Set StatusCuenta = '0' where NumCuenta = '" + TagCuenta2.NumCuenta + "'";
+                                        cmd.ExecuteNonQuery();
+
+
+                                        cmd.CommandText = "Update Tags Set StatusTag = '0' where CuentaId = '" + TagCuenta2.CuentaId + "'";
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                }
+                                catch (Exception Ex)
+                                {
+                                    using (StreamWriter file = new StreamWriter(path + archivo, true))
+                                    {
+                                        file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualizacion de colectivo <"); //se agrega información al documento
+                                        file.Dispose();
+                                        file.Close();
+                                    }
+                                    StopService();
+
+                                }
+                                finally
+                                {
+                                    ConexionSQL.Close();
+
+                                }
+                            }
+                        }
+                        else
+                        {
+                            using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
+                            {
+                                try
+                                {
+                                    ConexionSQL.Open();
+
+                                    cmd.CommandText = "Update CuentasTelepeajes Set SaldoCuenta = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where NumCuenta = '" + TagCuenta2.NumCuenta + "'";
+                                    cmd.ExecuteNonQuery();
+
+                                    cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoColectivos * 100), 2)) + "' Where CuentaId = '" + TagCuenta2.CuentaId + "'";
+                                    cmd.ExecuteNonQuery();
+
+
+
+                                }
+                                catch (Exception Ex)
+                                {
+                                    using (StreamWriter file = new StreamWriter(path + archivo, true))
+                                    {
+                                        file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualizacion de Colectivos"); //se agrega información al documento
+                                        file.Dispose();
+                                        file.Close();
+                                    }
+                                    StopService();
+                                }
+                                finally
+                                {
+                                    ConexionSQL.Close();
+
+                                }
+                            }
+                        }
+                        break;
+
+                    case "Individual":
+                        SaldoAnterior = Convert.ToString(TagCuenta2.SaldoTag);
+                        var NuevoSaldoIndividuales = TagCuenta2.SaldoTag - TagCuenta2.DescuentoCruce;
+                        SaldoActualizado = Convert.ToString(NuevoSaldoIndividuales);
+                        //CambiosNewColumn
+                        NumeroCuenta = TagCuenta2.NumCuenta;
+                        TipoCuenta = TagCuenta2.TypeCuenta;
+
+                        if (NuevoSaldoIndividuales < 15.25)
+                        {
+                            using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
+                            {
+                                try
+                                {
+                                    ConexionSQL.Open();
+
+                                    cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoIndividuales * 100), 2)) + "' Where CuentaId = '" + TagCuenta2.CuentaId + "'";
+                                    cmd.ExecuteNonQuery();
+
+                                    if (ValidarExcentos(newRow.NumTag))
+                                    {
+                                        cmd.CommandText = "Update Tags Set StatusTag = '0' where NumTag = '" + TagCuenta2.NumTag + "'";
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                }
+                                catch (Exception Ex)
+                                {
+                                    using (StreamWriter file = new StreamWriter(path + archivo, true))
+                                    {
+                                        file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualiazcion Individual <"); //se agrega información al documento
+                                        file.Dispose();
+                                        file.Close();
+                                    }
+                                    StopService();
+                                }
+                                finally
+                                {
+                                    ConexionSQL.Close();
+
+                                }
+                            }
+                        }
+                        else
+                        {
+                            using (SqlCommand cmd = new SqlCommand(Query, ConexionSQL))
+                            {
+                                try
+                                {
+                                    ConexionSQL.Open();
+
+                                    cmd.CommandText = "Update Tags Set SaldoTag = '" + Convert.ToString(Math.Round((NuevoSaldoIndividuales * 100), 2)) + "' Where CuentaId = '" + TagCuenta2.CuentaId + "'";
+                                    cmd.ExecuteNonQuery();
+
+                                }
+                                catch (Exception Ex)
+                                {
+                                    using (StreamWriter file = new StreamWriter(path + archivo, true))
+                                    {
+                                        file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Actualizacion Individual"); //se agrega información al documento
+                                        file.Dispose();
+                                        file.Close();
+                                    }
+                                    StopService();
+
+                                }
+                                finally
+                                {
+                                    ConexionSQL.Close();
+
+                                }
+                            }
+                        }
+                        break;
+
+                    default:
+                        break;
+
+                }
+
+                ActualizarHistorico(newRow, SaldoAnterior, SaldoActualizado, NumeroCuenta, TipoCuenta);
             }
-
-
-
-
         }
 
-        public void ActualizarHistorico(List<Historico> Lista, string Tag, string Evento, string SaldoAnterior, string SaldoActualizado, string NumeroCuenta, string TipoCuenta)
+        public void ActualizarHistorico(Historico newRow, string SaldoAnterior, string SaldoActualizado, string NumeroCuenta, string TipoCuenta)
         {
             try
             {
-
-                var List = Lista.Where(x => x.NumTag == Tag).Where(x => x.Evento == Evento).ToList();
-
                 DataTable table = CreaDt();
-                foreach (var item in List)
-                {
-                    DataRow row = table.NewRow();
+                DataRow row = table.NewRow();
+                row["Tag"] = newRow.NumTag.ToString();
+                row["Carril"] = newRow.Carril.ToString();
+                row["Delegacion"] = newRow.Delegacion.ToString();
+                row["Plaza"] = newRow.Plaza.ToString();
+                row["Cuerpo"] = newRow.Tramo.ToString();
+                DateTime date = DateTime.ParseExact(newRow.Fecha.ToString("dd/MM/yyyy HH:mm:ss"), "dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+                row["Fecha"] = date;
+                row["Clase"] = Buscar_Clase(newRow.Clase);
+                row["Evento"] = newRow.Evento.ToString();
+                row["Saldo"] = newRow.Saldo.ToString();
+                if (newRow.Operadora.ToString().Substring(0, 4) == "IMDM")
+                    row["Operador"] = "Otros";
+                else
+                    row["Operador"] = "SIVA";
+                row["SaldoAnterior"] = SaldoAnterior.Replace(".", ",");
+                row["SaldoActualizado"] = SaldoActualizado.Replace(".", ",");
+                row["NumeroCuenta"] = NumeroCuenta;
+                row["TipoCuenta"] = TipoCuenta;
+                //row["TAG_TRX_NB"] = newRow.TAG_TRX_NB;
+                table.Rows.Add(row);
 
-                    row["Tag"] = item.NumTag.ToString();
-                    row["Carril"] = item.Carril.ToString();
-                    row["Delegacion"] = item.Delegacion.ToString();
-                    row["Plaza"] = item.Plaza.ToString();
-                    row["Cuerpo"] = item.Tramo.ToString();
-                    DateTime date = DateTime.ParseExact(item.Fecha.ToString("dd/MM/yyyy HH:mm:ss"), "dd/MM/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
-                    row["Fecha"] = date;
-                    row["Clase"] = Buscar_Clase(item.Clase);
-                    row["Evento"] = item.Evento.ToString();
-                    row["Saldo"] = item.Saldo.ToString();
-                    if (item.Operadora.ToString().Substring(0, 4) == "IMDM")
-                        row["Operador"] = "Otros";
-                    else
-                        row["Operador"] = "SIVA";
-                    row["SaldoAnterior"] = SaldoAnterior.Replace(".", ",");
-                    row["SaldoActualizado"] = SaldoActualizado.Replace(".", ",");
-                    row["NumeroCuenta"] = NumeroCuenta;
-                    row["TipoCuenta"] = TipoCuenta;
-                    //row["TAG_TRX_NB"] = item.TAG_TRX_NB;
-                    table.Rows.Add(row);
-
-                }
-
-                //string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=SA;Password=CAPUFE";
                 string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
                 SqlConnection ConexionSQL = new SqlConnection(SQL);
 
                 using (SqlCommand SqlCommand = new SqlCommand("", ConexionSQL))
                 {
-
                     try
                     {
                         ConexionSQL.Open();
-
                         using (SqlBulkCopy sqlBulk = new SqlBulkCopy(ConexionSQL))
                         {
                             sqlBulk.BulkCopyTimeout = 1000;
@@ -859,13 +671,9 @@ namespace NewServiceTag
                             sqlBulk.WriteToServer(table);
                             sqlBulk.Close();
                         }
-
-                        CrucesRegistrados++;
-
                     }
                     catch (Exception Ex)
                     {
-
                         using (StreamWriter file = new StreamWriter(path + archivo, true))
                         {
                             file.WriteLine("Error en el proceso ServicioWinProsis: " + Consecutivotxt.ToString() + " a las " + DateTime.Now.ToString() + " " + Ex.Message + " " + Ex.StackTrace + " " + "Insertar en Historico"); //se agrega información al documento
@@ -874,7 +682,6 @@ namespace NewServiceTag
 
                         }
                         StopService();
-
                     }
                     finally
                     {
@@ -898,20 +705,15 @@ namespace NewServiceTag
 
         public bool ValidarExcentos(string Tag)
         {
-
-
             Tag = Tag.Substring(7, 4);
-
             if (Convert.ToInt32(Tag) >= 0001 && Convert.ToInt32(Tag) <= 0200)
                 return false;
             else
                 return true;
-
         }
 
         public DataTable CreaDt()
         {
-
             DataTable table = new DataTable("Historico");
             DataColumn Columna1;
             Columna1 = new DataColumn();
@@ -989,15 +791,11 @@ namespace NewServiceTag
             Columna15.DataType = System.Type.GetType("System.String");
             table.Columns.Add(Columna15);
 
-
             return table;
-
-
         }
 
         public string Buscar_Clase(string Clase)
         {
-
             string Nueva_Clase = string.Empty;
             if (Clase == "1")
             {
@@ -1079,9 +877,10 @@ namespace NewServiceTag
             {
                 Nueva_Clase = "Ups!";
             }
-
             return Nueva_Clase;
         }
+
+        private void eventLog1_EntryWritten(object sender, System.Diagnostics.EntryWrittenEventArgs e) { }
 
     }
 }

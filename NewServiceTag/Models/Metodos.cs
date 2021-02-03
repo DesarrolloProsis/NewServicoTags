@@ -27,6 +27,19 @@ namespace Service_Tags
 
     public partial class TagCuenta
     {
+        public TagCuenta(long cuentaId, string numTag, string numCuenta, bool statusTag, bool statusCuenta, string typeCuenta, double saldoCuenta, double saldoTag, double descuentoCruce)
+        {
+            CuentaId = cuentaId;
+            NumTag = numTag;
+            NumCuenta = numCuenta;
+            StatusTag = statusTag;
+            StatusCuenta = statusCuenta;
+            TypeCuenta = typeCuenta;
+            SaldoCuenta = saldoCuenta;
+            SaldoTag = saldoTag;
+            DescuentoCruce = descuentoCruce;
+        }
+
         public long CuentaId { get; set; }
         public string NumTag { get; set; }
         public string NumCuenta { get; set; }
@@ -37,12 +50,19 @@ namespace Service_Tags
         public double SaldoTag { get; set; }
         public double DescuentoCruce { get; set; }
 
+
     }
 
     public partial class Bandera
     {
         public DateTime Bandera_Nueva { get; set; }
         public string Evento { get; set; }
+
+        public Bandera(DateTime bandera, string evento)
+        {
+            Bandera_Nueva = bandera;
+            Evento = evento;
+        }
 
     }
 
