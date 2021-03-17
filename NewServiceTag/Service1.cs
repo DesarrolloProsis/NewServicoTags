@@ -29,6 +29,10 @@ namespace NewServiceTag
         {
             InitializeComponent();
         }
+        public void OnDebug()
+        {
+            MetodoInicial();
+        }
 
         protected override void OnStart(string[] args)
         {
@@ -89,6 +93,7 @@ namespace NewServiceTag
             //Crea el Log si no Existe
             Buscar_Texto();
             var Bandera = Buscar_Bandera();
+            //var Bandera = "hola";
             string Query;
             if (Bandera == null)
 
@@ -98,18 +103,20 @@ namespace NewServiceTag
                 Query = @"SELECT CONTENU_ISO, VOIE, ID_GARE, TAB_ID_CLASSE, TO_CHAR(DATE_TRANSACTION, 'dd/mm/yyyy hh24:mi:ss')DATE_TRANSACTION, PRIX_TOTAL, EVENT_NUMBER, TAG_TRX_NB, INDICE_SUITE
                         FROM  TRANSACTION
                         Where  ID_PAIEMENT = '15'
-                        AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) > '" + Convert.ToString(Bandera.Bandera_Nueva.AddMinutes(-18).ToString("yyyy/MM/dd HH:mm:ss")) + "' AND SUBSTR(TO_CHAR(CONTENU_ISO),0,3) = '501' AND TAB_ID_CLASSE >= 1 order by DATE_TRANSACTION ASC";
+                        AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) > '" + Convert.ToString(Bandera.AddMinutes(-18).ToString("yyyy/MM/dd HH:mm:ss")) + "'  AND SUBSTR(TO_CHAR(CONTENU_ISO),0,3) = '501' AND TAB_ID_CLASSE >= 1";
             }
 
             var Cruces = Buscar_Cruces(Query);
+            var crucesOrden = Cruces.OrderBy(item => item.Fecha);
             string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+            //string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
             SqlConnection ConexionSQL = new SqlConnection(SQL);
             try
             {
                 using (SqlCommand cmd = new SqlCommand("", ConexionSQL))
                 {
                     ConexionSQL.Open();
-                    foreach (var item in Cruces)
+                    foreach (var item in crucesOrden)
                     {
                         Query = @"SELECT COUNT(*) FROM dbo.Historico 
 	                        WHERE Id IN (SELECT Id FROM dbo.Historico  WHERE CONVERT(DATE, Fecha, 102) = '" + item.Fecha.ToString("yyyy-MM-dd") + "') " +
@@ -192,6 +199,7 @@ namespace NewServiceTag
         public Bandera Buscar_Bandera()
         {
             string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+            //string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
             SqlConnection ConexionSQL = new SqlConnection(SQL);
             using (SqlCommand SqlCommand = new SqlCommand("select top(1) convert(varchar,Fecha,27) as Fecha, Evento from Historico order by Fecha desc", ConexionSQL))
             {
@@ -347,6 +355,7 @@ namespace NewServiceTag
             {
                 string Query = string.Empty;
                 string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+                //string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
                 SqlConnection ConexionSQL = new SqlConnection(SQL);
                 Query = "Select top(1) CuentaId, NumTag, NumCuenta, StatusTag, StatusCuenta, TypeCuenta, SaldoCuenta, SaldoTag " +
                         "From Tags t Inner Join CuentasTelepeajes c on t.CuentaId = c.Id Where t.NumTag = '" + Cruce + "'";
@@ -433,6 +442,7 @@ namespace NewServiceTag
         public void Actualizar(Historico newRow)
         {
             string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+            //string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
             SqlConnection ConexionSQL = new SqlConnection(SQL);
             string Query = string.Empty;
             string SaldoAnterior = string.Empty;
@@ -657,6 +667,7 @@ namespace NewServiceTag
                 table.Rows.Add(row);
 
                 string SQL = "Data Source=.;Initial Catalog=GTDB; Integrated Security=False;User Id=Sa;Password=CAPUFE";
+                //string SQL = "Data Source=.;Initial Catalog=GTDBPruebas; Integrated Security=False;User Id=Sa;Password=CAPUFE";
                 SqlConnection ConexionSQL = new SqlConnection(SQL);
 
                 using (SqlCommand SqlCommand = new SqlCommand("", ConexionSQL))

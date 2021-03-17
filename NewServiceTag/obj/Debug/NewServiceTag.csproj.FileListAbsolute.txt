@@ -33,3 +33,15 @@ C:\Users\Usuario\Desktop\LaMeraChuleta\NewServicoTags\NewServiceTag\obj\Debug\Ne
 C:\Users\Usuario\Desktop\LaMeraChuleta\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csproj.CopyComplete
 C:\Users\Usuario\Desktop\LaMeraChuleta\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.exe
 C:\Users\Usuario\Desktop\LaMeraChuleta\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.pdb
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csprojAssemblyReference.cache
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.ProjectInstaller.resources
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.NewServiceTag.resources
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csproj.GenerateResource.cache
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csproj.CoreCompileInputs.cache
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.exe
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.pdb
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\bin\Debug\NewServiceTag.exe.config
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\bin\Debug\NewServiceTag.exe
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\bin\Debug\NewServiceTag.pdb
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\bin\Debug\Oracle.ManagedDataAccess.dll
+C:\Users\Usuario\Desktop\NewServicoTags\NewServiceTag\obj\Debug\NewServiceTag.csproj.CopyComplete
