@@ -14,12 +14,17 @@ namespace NewServiceTag
         /// </summary>
         static void Main()
         {
-            ServiceBase[] ServicesToRun;
-            ServicesToRun = new ServiceBase[]
-            {
-                new NewServiceTag()
-            };
-            ServiceBase.Run(ServicesToRun);
+            #if DEBUG
+                NewServiceTag debug = new NewServiceTag();
+                debug.OnDebug();
+            #else
+                ServiceBase[] ServicesToRun;
+                ServicesToRun = new ServiceBase[]
+                {
+                    new NewServiceTag()
+                };
+                ServiceBase.Run(ServicesToRun);
+            #endif
         }
     }
 }
