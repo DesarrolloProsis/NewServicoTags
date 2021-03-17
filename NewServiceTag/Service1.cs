@@ -103,7 +103,7 @@ namespace NewServiceTag
                 Query = @"SELECT CONTENU_ISO, VOIE, ID_GARE, TAB_ID_CLASSE, TO_CHAR(DATE_TRANSACTION, 'dd/mm/yyyy hh24:mi:ss')DATE_TRANSACTION, PRIX_TOTAL, EVENT_NUMBER, TAG_TRX_NB, INDICE_SUITE
                         FROM  TRANSACTION
                         Where  ID_PAIEMENT = '15'
-                        AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) > '" + Convert.ToString(Bandera.AddMinutes(-18).ToString("yyyy/MM/dd HH:mm:ss")) + "'  AND SUBSTR(TO_CHAR(CONTENU_ISO),0,3) = '501' AND TAB_ID_CLASSE >= 1";
+                        AND TO_CHAR(DATE_TRANSACTION, 'YYYY/MM/DD HH24:MI:SS' ) > '" + Bandera + "'  AND SUBSTR(TO_CHAR(CONTENU_ISO),0,3) = '501' AND TAB_ID_CLASSE >= 1";
             }
 
             var Cruces = Buscar_Cruces(Query);
